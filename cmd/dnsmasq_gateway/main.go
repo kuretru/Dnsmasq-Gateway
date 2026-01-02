@@ -31,12 +31,12 @@ func main() {
 	dnsmasq.Init(ctx, inputCh, outputCh)
 
 	if err := syslog_listener.Init(ctx, config.SyslogNg, inputCh); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, err.Error())
+		_, _ = fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(1)
 	}
 
 	if err := influxdb.Init(ctx, config.InfluxDB, outputCh); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, err.Error())
+		_, _ = fmt.Fprintf(os.Stderr, "%v", err)
 		os.Exit(1)
 	}
 
