@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.25'
+      - name: Test
+        run: go test -v ./cmd/dnsmasq_gateway
+      - name: Build
+        run: go build -v ./cmd/dnsmasq_gateway
+      - name: Change mode
+        run: chmod +x dnsmasq_gateway
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnsmasq_gateway
+          path: dnsmasq_gateway
+  docker:
+    name: docker
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download build artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: build
+      - name: Change mode
+        run: chmod +x build/dnsmasq_gateway
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Packages
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/kuretru/dnsmasq-gateway
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: build
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  purge-images:
+    name: purge images
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Purge untagged docker images
+        uses: Chizkiyahu/delete-untagged-ghcr-action@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ github.repository }}
+          repository_owner: ${{ github.repository_owner }}
+          package_name: dnsmasq-gateway
+          untagged_only: true
+          except_untagged_multiplatform: true
+          owner_type: user
