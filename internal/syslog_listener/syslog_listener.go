@@ -57,7 +57,7 @@ func Init(ctx context.Context, config Config, inputCh chan dnsmasq.Log) error {
 				inputCh <- log
 			case <-ctx.Done():
 				if err := server.Kill(); err != nil {
-					slog.Error(fmt.Sprintf("SyslogListener: kill server failed %v", err.Error()))
+					slog.Error(fmt.Sprintf("SyslogListener: kill server failed, %v", err.Error()))
 				}
 			}
 		}
