@@ -10,10 +10,10 @@ import (
 )
 
 type Config struct {
-	Url    string
-	Token  string
-	Org    string
-	Bucket string
+	Url    string `yaml:"url"`
+	Token  string `yaml:"token"`
+	Org    string `yaml:"org"`
+	Bucket string `yaml:"bucket"`
 }
 
 var (

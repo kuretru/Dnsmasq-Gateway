@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	Port int
+	Port int `yaml:"port"`
 }
 
 func Init(ctx context.Context, config Config, inputCh chan dnsmasq.Log) error {
